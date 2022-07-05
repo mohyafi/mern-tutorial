@@ -49,21 +49,47 @@ const registerUser = asyncHandler(async (req, res) => {
 const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
-
-  if (user && (await bcrypt.compare(password, user.password))) {
-    res.json({
-      message: "success",
-      data: {
-        __id: user["id"],
-        name: user["name"],
-        email: user["email"],
-        token: generateToken(user["id"]),
-      },
-    });
+  console.log(user);
+  //akses login admin
+  if (
+    user["email"] == process.env.ADMIN_EMAIL &&
+    (await bcrypt.compare(password, user.password))
+  ) {
+    const resGoals = await User.find();
+    res.status(200).json(resGoals);
+    // res.json({
+    //   message: "success",
+    //   data: {
+    //     status: "Login Admin",
+    //   },
+    //   data: {
+    //     __id: user["id"],
+    //     name: user["name"],
+    //     email: user["email"],
+    //     token: generateToken(user["id"]),
+    //   },
+    // });
   } else {
-    res.status(400);
-    throw Error("Invalid credentials");
+    //login user
+    if (user && (await bcrypt.compare(password, user.password))) {
+      res.json({
+        message: "success",
+        data: {
+          __id: user["id"],
+          name: user["name"],
+          email: user["email"],
+          token: generateToken(user["id"]),
+        },
+      });
+    } else {
+      res.status(400);
+      throw Error("Invalid credentials");
+    }
   }
+  //   } else {
+  //     res.status(400);
+  //     throw Error("Invalid credentials");
+  //   }
   //   res.json({ message: "Login User " });
 });
 const getMe = asyncHandler(async (req, res) => {
